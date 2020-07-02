@@ -1,4 +1,5 @@
 require 'date'
+require 'timezone_parser'
 require_relative 'time_with_zone'
 
 module Icalendar
@@ -11,7 +12,12 @@ module Icalendar
 
       def initialize(value, params = {})
         if value.is_a? String
-          params['tzid'] = 'UTC' if value.end_with? 'Z'
+          if value.end_with? 'Z'
+            params['tzid'] = 'UTC'
+          elsif params['tzid']
+            # Ensure we have a valid Ruby Timezone
+            params['tzid'] = validate_tzid(params['tzid'])
+          end
 
           begin
             parsed_date = ::DateTime.strptime(value, FORMAT)
@@ -47,8 +53,32 @@ module Icalendar
         value.respond_to?(:utc?) ? value.utc? : value.to_time.utc?
       end
 
+      def validate_tzid(tzids)
+        Array(tzids).each do |tzid|
+          zone_name = TimezoneParser.getTimezones(tzid).first
+
+          if zone_name
+            return zone_name
+          else
+            if /(?<tz>\w+\/\w+\Z)/.match(tzid)
+              begin
+                tz_match = Regexp.last_match[:tz]
+                TZInfo::Timezone.get(tz_match)
+                return tz_match
+              rescue TZInfo::InvalidTimezoneIdentifier
+                next
+              end
+            end
+          end
+        end
+
+        # If we did not found a valid timezone return what we got
+        tzids
+      end
+
       class FormatError < ArgumentError
       end
+
     end
 
   end

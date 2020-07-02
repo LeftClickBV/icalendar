@@ -40,6 +40,7 @@ ActiveSupport is required for TimeWithZone support, but not required for general
   s.add_development_dependency 'i18n', '~> 1.8'
   s.add_development_dependency 'tzinfo', '~> 1.2'
   s.add_development_dependency 'tzinfo-data', '~> 1.2020'
+  s.add_development_dependency 'TimezoneParser', '~> 1.0.0'
   # tzinfo 0.x
   # s.add_development_dependency 'tzinfo', '~> 0.3'
   # end tzinfo
